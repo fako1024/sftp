@@ -1,19 +1,10 @@
 # SFTP
 
-![Docker Automated build](https://img.shields.io/docker/automated/atmoz/sftp.svg) ![Docker Build Status](https://img.shields.io/docker/build/atmoz/sftp.svg) ![Docker Stars](https://img.shields.io/docker/stars/atmoz/sftp.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/atmoz/sftp.svg)
-
-![OpenSSH logo](https://raw.githubusercontent.com/atmoz/sftp/master/openssh.png "Powered by OpenSSH")
-
-# Supported tags and respective `Dockerfile` links
-
-- [`debian-stretch`, `debian`, `latest` (*Dockerfile*)](https://github.com/atmoz/sftp/blob/master/Dockerfile) [![](https://images.microbadger.com/badges/image/atmoz/sftp.svg)](http://microbadger.com/images/atmoz/sftp "Get your own image badge on microbadger.com")
-- [`debian-jessie` (*Dockerfile*)](https://github.com/atmoz/sftp/blob/debian-jessie/Dockerfile) [![](https://images.microbadger.com/badges/image/atmoz/sftp:debian-jessie.svg)](http://microbadger.com/images/atmoz/sftp:debian-jessie "Get your own image badge on microbadger.com")
-- [`alpine` (*Dockerfile*)](https://github.com/atmoz/sftp/blob/alpine/Dockerfile) [![](https://images.microbadger.com/badges/image/atmoz/sftp:alpine.svg)](http://microbadger.com/images/atmoz/sftp:alpine "Get your own image badge on microbadger.com")
+Forked from [atmoz/sftp](https://github.com/atmoz/sftp) to support user-owned base directories.
 
 # Securely share your files
 
 Easy to use SFTP ([SSH File Transfer Protocol](https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol)) server with [OpenSSH](https://en.wikipedia.org/wiki/OpenSSH).
-This is an automated build linked with the [debian](https://hub.docker.com/_/debian/) and [alpine](https://hub.docker.com/_/alpine/) repositories.
 
 # Usage
 
@@ -27,10 +18,7 @@ This is an automated build linked with the [debian](https://hub.docker.com/_/deb
 - Mount volumes
   - The users are chrooted to their home directory, so you can mount the
     volumes in separate directories inside the user's home directory
-    (/home/user/**mounted-directory**) or just mount the whole **/home** directory.
-    Just remember that the users can't create new files directly under their
-    own home directory, so make sure there are at least one subdirectory if you
-    want them to upload files.
+    (/home/**user**) or just mount the whole **/home** directory.
   - For consistent server fingerprint, mount your own host keys (i.e. `/etc/ssh/ssh_host_*`)
 
 # Examples
@@ -49,7 +37,7 @@ Let's mount a directory and set UID:
 
 ```
 docker run \
-    -v /host/upload:/home/foo/upload \
+    -v /host/foo:/home/foo \
     -p 2222:22 -d atmoz/sftp \
     foo:pass:1001
 ```
@@ -60,7 +48,7 @@ docker run \
 sftp:
     image: atmoz/sftp
     volumes:
-        - /host/upload:/home/foo/upload
+        - /host/foo:/home/foo
     ports:
         - "2222:22"
     command: foo:pass:1001
@@ -93,7 +81,7 @@ Add `:e` behind password to mark it as encrypted. Use single quotes if using ter
 
 ```
 docker run \
-    -v /host/share:/home/foo/share \
+    -v /host/foo:/home/foo \
     -p 2222:22 -d atmoz/sftp \
     'foo:$1$0G2g0GSt$ewU0t6GXG15.0hWoOX8X9.:e:1001'
 ```
@@ -109,7 +97,7 @@ Mount public keys in the user's `.ssh/keys/` directory. All keys are automatical
 docker run \
     -v /host/id_rsa.pub:/home/foo/.ssh/keys/id_rsa.pub:ro \
     -v /host/id_other.pub:/home/foo/.ssh/keys/id_other.pub:ro \
-    -v /host/share:/home/foo/share \
+    -v /host/foo:/home/foo \
     -p 2222:22 -d atmoz/sftp \
     foo::1001
 ```
@@ -122,7 +110,7 @@ This container will generate new SSH host keys at first run. To avoid that your 
 docker run \
     -v /host/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key \
     -v /host/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key \
-    -v /host/share:/home/foo/share \
+    -v /host/foo:/home/foo \
     -p 2222:22 -d atmoz/sftp \
     foo::1001
 ```
@@ -166,15 +154,8 @@ bindmount /data/docs /home/peter/docs --read-only
 
 **NOTE:** Using `mount` requires that your container runs with the `CAP_SYS_ADMIN` capability turned on. [See this answer for more information](https://github.com/atmoz/sftp/issues/60#issuecomment-332909232).
 
-# What's the difference between Debian and Alpine?
-
-The biggest differences are in size and OpenSSH version. [Alpine](https://hub.docker.com/_/alpine/) is 10 times smaller than [Debian](https://hub.docker.com/_/debian/). OpenSSH version can also differ, as it's two different teams maintaining the packages. Debian is generally considered more stable and only bugfixes and security fixes are added after each Debian release (about 2 years). Alpine has a faster release cycle (about 6 months) and therefore newer versions of OpenSSH. As I'm writing this, Debian has version 7.4 while Alpine has version 7.5. Recommended reading: [Comparing Debian vs Alpine for container & Docker apps](https://www.turnkeylinux.org/blog/alpine-vs-debian)
-
 # What version of OpenSSH do I get?
 
-It depends on which linux distro and version you choose (see available images at the top). You can see what version you get by checking the distro's packages online. I have provided direct links below for easy access.
+You can see what version you get by checking the Alpine's packages online:
 
 - [List of `openssh` packages on Alpine releases](https://pkgs.alpinelinux.org/packages?name=openssh&branch=&repo=main&arch=x86_64)
-- [List of `openssh-server` packages on Debian releases](https://packages.debian.org/search?keywords=openssh-server&searchon=names&exact=1&suite=all&section=main)
-
-**Note:** The time when this image was last built can delay the availability of an OpenSSH release. Since this is an automated build linked with [debian](https://hub.docker.com/_/debian/) and [alpine](https://hub.docker.com/_/alpine/) repos, the build will depend on how often they push changes (out of my control).  Typically this can take 1-5 days, but it can also take longer. You can of course make this more predictable by cloning this repo and run your own build manually.
