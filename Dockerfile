@@ -1,5 +1,5 @@
 FROM alpine:latest
-MAINTAINER Adrian Dvergsdal [atmoz.net]
+MAINTAINER fako1024 [github.com/fako1024]
 
 # Steps done in one RUN layer:
 # - Install packages
